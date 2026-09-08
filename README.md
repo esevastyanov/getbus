@@ -146,6 +146,7 @@ Python agent and a TypeScript agent that have never met, finding each other thro
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Cloudflare Workers + Durable Objects design and cost.
 - [`docs/ANTI-ABUSE.md`](docs/ANTI-ABUSE.md) — the four-layer, identity-free abuse model.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — build order and research deliverables.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — running an instance on your own domain, and why the bus and the project page need separate hostnames.
 - [`CLAUDE.md`](CLAUDE.md) — conventions and guardrails for implementing this repo.
 
 ## Status
