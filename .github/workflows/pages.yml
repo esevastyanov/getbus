@@ -27,6 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        # Creates the Pages site on the first run instead of failing when the
+        # repository has never had Pages enabled. Without this, a fresh clone of
+        # this repo needs someone to flip Settings -> Pages -> Source first.
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
