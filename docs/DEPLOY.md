@@ -35,13 +35,40 @@ answers humans with a JSON error. For an artifact whose point is to be read abou
 cited, that is the wrong trade. Whichever way you go, the two must be different
 hostnames.
 
+## This instance
+
+`getbus.dev`, registered 2026-09-08. The plan above, with the placeholders filled in:
+
+| Hostname | Serves | Where it is configured |
+|---|---|---|
+| `getbus.dev` | project page | GitHub Pages, from `site/` |
+| `www.getbus.dev` | redirect to apex | DNS |
+| `bus.getbus.dev` | the Worker | `wrangler.toml` route |
+
+**The zone has to move to Cloudflare first.** The domain currently answers from
+Squarespace nameservers (`nsa1–nsa4.squarespacedns.com`). A Cloudflare Worker can only
+take a custom domain on a zone Cloudflare itself hosts — pointing a `CNAME` at
+`*.workers.dev` from third-party DNS does not work and returns Cloudflare error 1014.
+So:
+
+1. Add `getbus.dev` as a site in the Cloudflare dashboard. Cloudflare scans the existing
+   records; delete the Squarespace parking `A` records and the `www` CNAME it imports,
+   they point at a parked page.
+2. Replace the nameservers at Squarespace with the two Cloudflare gives you.
+3. Wait for the change to take effect, then configure the Worker and Pages records below
+   from the Cloudflare dashboard.
+
+Note that `.dev` is on the HSTS preload list: browsers refuse plain HTTP for it
+entirely, so nothing is reachable until the certificates are issued. That is a feature
+here — the bus is HTTPS-only anyway.
+
 ## Wiring the Worker to the domain
 
 Add the custom domain to `wrangler.toml` and redeploy:
 
 ```toml
 [[routes]]
-pattern = "bus.getbus.example"
+pattern = "bus.getbus.dev"
 custom_domain = true
 ```
 
@@ -63,9 +90,12 @@ handled in the same place as the Worker.
 `.github/workflows/pages.yml` publishes `site/` on every push to `main`. Enable Pages in
 the repository settings with source "GitHub Actions", then:
 
-1. Put the bare domain in `site/CNAME` — one line, no scheme:
+1. **Do the DNS first, the `CNAME` file last.** Adding `site/CNAME` makes GitHub Pages
+   adopt the custom domain immediately and start redirecting `<user>.github.io/<repo>`
+   to it — so committing it before DNS resolves takes the page down at both addresses.
+   Once the records below are live, create it with the bare domain, one line, no scheme:
    ```
-   getbus.example
+   getbus.dev
    ```
 2. Point the apex at GitHub's Pages servers with four `A` records (and the matching
    `AAAA` records for IPv6). **Take the current addresses from GitHub's own
@@ -92,8 +122,21 @@ Search and replace the instance origin in these places:
 | `wrangler.toml` | `GETBUS_PROTOCOL_URL` if the spec moves to the domain |
 | `README.md`, `docs/PROTOCOL.md` | `getbus.example` placeholders, if you want real URLs |
 
+### Order of operations
+
+Each step assumes the previous one has taken effect. Skipping ahead is what breaks
+things:
+
+1. Move the zone to Cloudflare (nameserver change at Squarespace).
+2. Add the Worker route in `wrangler.toml`, uncomment it, `npm run deploy`.
+3. Add the GitHub Pages `A`/`AAAA` records, grey-clouded.
+4. Set the custom domain in the repository's Pages settings and commit `site/CNAME`.
+5. Wait for GitHub to issue the certificate, then enable "Enforce HTTPS".
+6. Only then repoint the URLs in `site/index.html` — publishing them earlier would ship
+   a page full of links to a host that does not answer yet.
+
 Then re-run the conformance check against the new origin:
 
 ```bash
-./examples/console/conformance.sh https://bus.getbus.example
+./examples/console/conformance.sh https://bus.getbus.dev
 ```

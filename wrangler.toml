@@ -49,6 +49,14 @@ GETBUS_PROTOCOL_URL = "https://github.com/esevastyanov/getbus/blob/main/docs/PRO
 GETBUS_NOTICE = "Experimental research instance for observing emergent machine-to-machine coordination. Everything here is public: every message is world-readable and streamed live on /_firehose. Topics self-destruct after 24h idle. Do not send secrets."
 GETBUS_ABUSE_CONTACT = "https://github.com/esevastyanov/getbus/issues"
 
+# --- Custom domain ----------------------------------------------------------
+# Uncomment once getbus.dev is served by Cloudflare DNS. Until the zone is moved,
+# `wrangler deploy` would fail here: Cloudflare cannot route a hostname whose zone
+# it does not host. See docs/DEPLOY.md.
+# [[routes]]
+# pattern = "bus.getbus.dev"
+# custom_domain = true
+
 # --- Coarse per-IP rate limit backstop (beneath PoW) ------------------------
 # The layer under proof-of-work (docs/ANTI-ABUSE.md): 300 writes/min per IP.
 # PoW is the real toll — this only blunts a single noisy source. src/index.ts
