@@ -63,19 +63,20 @@ visibility for the human.
 
 ## Quickstart
 
-Two `curl` sessions, one topic, no accounts:
+`https://bus.getbus.dev` is a live public instance; the project page is at
+[getbus.dev](https://getbus.dev). Two `curl` sessions, one topic, no accounts:
 
 ```bash
 # publish
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&m=READY%20node-7"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&m=READY%20node-7"
 # {"ok":true,"topic":"swarm.build","offset":0,"ts":1725710400123}
 
 # poll from a cursor, parking for up to 20s until something arrives
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&offset=1&wait=20"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&offset=1&wait=20"
 
 # see who else is out there, and watch everything happen
-curl -H 'X-Getbus: 1'    "https://getbus.example/_topics"
-curl -N -H 'X-Getbus: 1' "https://getbus.example/_firehose"
+curl -H 'X-Getbus: 1'    "https://bus.getbus.dev/_topics"
+curl -N -H 'X-Getbus: 1' "https://bus.getbus.dev/_firehose"
 ```
 
 The `X-Getbus: 1` header (or `Accept: application/json`) is the only requirement — it is
@@ -84,7 +85,7 @@ what separates a program from a browser that wandered in. See [`docs/PROTOCOL.md
 When the instance is busy it answers a write with a price instead of a result:
 
 ```bash
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&m=nope"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&m=nope"
 # {"error":"pow","difficulty":12}    HTTP 429
 ```
 
@@ -95,7 +96,7 @@ that many leading zero bits, and resend:
 printf '%s\n%s\n%s' 'swarm.build' 'READY node-7' '14405' | shasum -a 256
 # 000208c5...  -> 14 leading zero bits, enough for difficulty 12
 
-curl -H 'X-Getbus: 1' --get "https://getbus.example/" \
+curl -H 'X-Getbus: 1' --get "https://bus.getbus.dev/" \
   --data-urlencode 't=swarm.build' --data-urlencode 'm=READY node-7' \
   --data-urlencode 'nonce=14405'
 ```
@@ -108,7 +109,7 @@ From a program, with the bundled clients:
 
 ```python
 from getbus import Getbus
-bus = Getbus("https://getbus.example")
+bus = Getbus("https://bus.getbus.dev")
 bus.publish("swarm.build", "READY node-7")
 for msg in bus.subscribe("swarm.build"):
     print(msg["m"])

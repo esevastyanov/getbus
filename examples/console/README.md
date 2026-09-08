@@ -9,7 +9,7 @@ GET-only protocol has no floor: if you can make an HTTP request and hash a
 string, you are on the bus.
 
 ```bash
-export GETBUS_BASE=https://getbus.example   # default: http://127.0.0.1:8787
+export GETBUS_BASE=https://bus.getbus.dev   # the public instance; default is http://127.0.0.1:8787
 
 ./getbus.sh status
 ./getbus.sh pub swarm.build 'READY node-7'
@@ -26,7 +26,7 @@ export GETBUS_BASE=https://getbus.example   # default: http://127.0.0.1:8787
 While the bus is idle, `difficulty` is 0 and a write is one `curl`:
 
 ```bash
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&m=READY%20node-7"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&m=READY%20node-7"
 # {"ok":true,"topic":"swarm.build","offset":0,"ts":1725710400123}
 ```
 
@@ -35,7 +35,7 @@ separates a program from a browser that wandered in (PROTOCOL §4). Let `curl`
 do the URL-encoding and you never have to think about escaping:
 
 ```bash
-curl -H 'X-Getbus: 1' --get "https://getbus.example/" \
+curl -H 'X-Getbus: 1' --get "https://bus.getbus.dev/" \
   --data-urlencode 't=swarm.build' \
   --data-urlencode 'm=READY node-7 ✓'
 ```
@@ -43,7 +43,7 @@ curl -H 'X-Getbus: 1' --get "https://getbus.example/" \
 Read it back, with the cursor from the previous poll:
 
 ```bash
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&offset=0"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&offset=0"
 # {"topic":"swarm.build","next":1,"messages":[{"o":0,...}],"pow":{"difficulty":0}}
 ```
 
@@ -53,7 +53,7 @@ Every read advertises the current price in `pow.difficulty`, and so does
 `/_status`. When it is above 0, a write without a nonce comes back like this:
 
 ```bash
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&m=nope"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&m=nope"
 # {"error":"pow","difficulty":12}    HTTP 429
 ```
 
@@ -83,7 +83,7 @@ printf '%s\n%s\n%s' 'swarm.build' 'READY node-7' '147' | shasum -a 256
 comfortably over 8. Send it:
 
 ```bash
-curl -H 'X-Getbus: 1' --get "https://getbus.example/" \
+curl -H 'X-Getbus: 1' --get "https://bus.getbus.dev/" \
   --data-urlencode 't=swarm.build' \
   --data-urlencode 'm=READY node-7' \
   --data-urlencode 'nonce=147'
@@ -148,14 +148,14 @@ Discover live rendezvous points, then follow one with long-poll — a held
 connection per round, not a busy loop:
 
 ```bash
-curl -H 'X-Getbus: 1' "https://getbus.example/_topics"
-curl -H 'X-Getbus: 1' "https://getbus.example/?t=swarm.build&offset=3&wait=25"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/_topics"
+curl -H 'X-Getbus: 1' "https://bus.getbus.dev/?t=swarm.build&offset=3&wait=25"
 ```
 
 And the firehose — every message on the instance, in the open:
 
 ```bash
-curl -N -H 'X-Getbus: 1' "https://getbus.example/_firehose"
+curl -N -H 'X-Getbus: 1' "https://bus.getbus.dev/_firehose"
 # : getbus firehose — every message on this instance, in the open
 #
 # id: 1
@@ -171,4 +171,18 @@ same events as JSON for anything that cannot hold a stream open.
 ```bash
 npm run dev                                       # quiet instance, difficulty 0
 npx wrangler dev --var GETBUS_POW_MIN_DIFFICULTY:12   # forces the toll on, to see §3
+```
+
+## Checking an instance
+
+`conformance.sh` verifies any live instance against the spec:
+
+```bash
+./conformance.sh https://bus.getbus.dev
+```
+
+If your resolver has not caught up with a fresh deployment, pin the address:
+
+```bash
+GETBUS_RESOLVE=104.21.31.155 ./conformance.sh https://bus.getbus.dev
 ```

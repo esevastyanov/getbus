@@ -37,7 +37,7 @@ hostnames.
 
 ## This instance
 
-`getbus.dev`, registered 2026-09-08. The plan above, with the placeholders filled in:
+`getbus.dev`, live since 2026-09-08. The plan above, as actually built:
 
 | Hostname | Serves | Where it is configured |
 |---|---|---|
@@ -45,18 +45,20 @@ hostnames.
 | `www.getbus.dev` | redirect to apex | DNS |
 | `bus.getbus.dev` | the Worker | `wrangler.toml` route |
 
-**The zone has to move to Cloudflare first.** The domain currently answers from
-Squarespace nameservers (`nsa1–nsa4.squarespacedns.com`). A Cloudflare Worker can only
-take a custom domain on a zone Cloudflare itself hosts — pointing a `CNAME` at
+**The zone had to move to Cloudflare first.** The domain was registered through
+Squarespace and answered from `nsa1–nsa4.squarespacedns.com`. A Cloudflare Worker can
+only take a custom domain on a zone Cloudflare itself hosts — pointing a `CNAME` at
 `*.workers.dev` from third-party DNS does not work and returns Cloudflare error 1014.
 So:
 
-1. Add `getbus.dev` as a site in the Cloudflare dashboard. Cloudflare scans the existing
-   records; delete the Squarespace parking `A` records and the `www` CNAME it imports,
-   they point at a parked page.
-2. Replace the nameservers at Squarespace with the two Cloudflare gives you.
-3. Wait for the change to take effect, then configure the Worker and Pages records below
-   from the Cloudflare dashboard.
+1. Add the domain as a site in the Cloudflare dashboard. Cloudflare imports the existing
+   records; delete the registrar's parking `A` records, its `www` CNAME and its
+   `_domainconnect` helper. Keep the `_dmarc`, `_domainkey` and SPF `TXT` records — they
+   declare that the domain sends no mail, which is free anti-spoofing for a domain that
+   never will.
+2. Replace the nameservers at the registrar with the two Cloudflare gives you.
+3. Wait for the delegation to take effect, then configure the Worker and Pages records
+   below.
 
 Note that `.dev` is on the HSTS preload list: browsers refuse plain HTTP for it
 entirely, so nothing is reachable until the certificates are issued. That is a feature
@@ -102,10 +104,12 @@ the repository settings with source "GitHub Actions", then:
    documentation** — "Managing a custom domain for your GitHub Pages site" — rather than
    from any copy of them, including this file; they have changed before.
 3. Add `www` as a `CNAME` to `<user>.github.io`.
-4. **Set those records to DNS-only (grey cloud) in Cloudflare.** Proxying GitHub Pages
-   through Cloudflare puts two certificate authorities in the path and is a well-known
-   source of redirect loops and stale TLS. The Worker's own hostname stays proxied — it
-   has to be, it *is* Cloudflare.
+4. **Set those records to DNS-only (grey cloud) in Cloudflare.** This is not optional:
+   GitHub issues the custom domain's certificate over an HTTP-01 challenge on the domain
+   itself, and a Cloudflare proxy intercepts that challenge, so issuance never completes
+   and "Enforce HTTPS" stays unavailable. Proxying also puts two certificate authorities
+   in the path, a well-known source of redirect loops. The Worker's own hostname is the
+   one record that stays proxied — it has to be, it *is* Cloudflare.
 5. Enable "Enforce HTTPS" in the repository's Pages settings once the certificate is
    issued.
 
@@ -139,4 +143,12 @@ Then re-run the conformance check against the new origin:
 
 ```bash
 ./examples/console/conformance.sh https://bus.getbus.dev
+```
+
+Resolvers cache aggressively during a cutover — a negative answer from before the record
+existed can linger for the zone's SOA minimum. To check an origin your own resolver has
+not caught up with yet, pin the address:
+
+```bash
+GETBUS_RESOLVE=104.21.31.155 ./examples/console/conformance.sh https://bus.getbus.dev
 ```

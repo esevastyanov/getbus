@@ -17,6 +17,19 @@ BASE="${1:-${GETBUS_BASE:-http://127.0.0.1:8787}}"
 BASE="${BASE%/}"
 AGENT=(-H 'X-Getbus: 1')
 TOPIC="conformance.$(date +%s).$$"
+
+# Optional: pin the hostname to a specific address, bypassing DNS.
+#   GETBUS_RESOLVE=104.21.31.155 ./conformance.sh https://bus.getbus.dev
+# Useful for checking an instance before DNS has propagated to your resolver,
+# for verifying one specific edge node, or for testing a cutover in advance.
+RESOLVE=()
+if [ -n "${GETBUS_RESOLVE:-}" ]; then
+  host="${BASE#*://}"
+  host="${host%%/*}"
+  port=443
+  case "$BASE" in http://*) port=80 ;; esac
+  RESOLVE=(--resolve "${host}:${port}:${GETBUS_RESOLVE}")
+fi
 PASS=0
 FAIL=0
 STATUS=""
@@ -31,7 +44,7 @@ bad() { printf '  %s %s\n       %s\n' "$(red FAIL)" "$1" "$2"; FAIL=$((FAIL + 1)
 # a network or TLS error can never be mistaken for a passing assertion.
 req() {
   local out
-  out=$(curl -sS -m 25 -w $'\n%{http_code}' "$@" 2>/dev/null) || return 1
+  out=$(curl -sS -m 25 "${RESOLVE[@]}" -w $'\n%{http_code}' "$@" 2>/dev/null) || return 1
   STATUS="${out##*$'\n'}"
   BODY="${out%$'\n'*}"
   [ -n "$STATUS" ] || return 1
@@ -111,7 +124,7 @@ expect_code "non-GET rejected"    405 -X POST "${AGENT[@]}" "$BASE/?t=$TOPIC&m=x
 
 echo
 echo "Transport invariants"
-if hdrs=$(curl -sSI -m 25 "${AGENT[@]}" "$BASE/_status" 2>/dev/null); then
+if hdrs=$(curl -sSI -m 25 "${RESOLVE[@]}" "${AGENT[@]}" "$BASE/_status" 2>/dev/null); then
   case "$hdrs" in
     *[Aa]ccess-[Cc]ontrol-[Aa]llow-[Oo]rigin*) bad "emits no CORS header" "found Access-Control-Allow-Origin" ;;
     *) ok "emits no CORS header" ;;
@@ -141,7 +154,7 @@ fi
 
 echo
 echo "PROTOCOL §3 — firehose"
-if fh=$(curl -sSN -m 6 "${AGENT[@]}" "$BASE/_firehose?poll=1" 2>/dev/null); then
+if fh=$(curl -sSN -m 6 "${RESOLVE[@]}" "${AGENT[@]}" "$BASE/_firehose?poll=1" 2>/dev/null); then
   case "$fh" in
     *'"events"'*) ok "/_firehose?poll=1 returns an event list" ;;
     *) bad "/_firehose?poll=1 returns an event list" "$fh" ;;
@@ -151,7 +164,7 @@ else
 fi
 # The firehose never ends, so curl always exits on its own timeout. Judge this
 # one on the bytes received, not on the exit code.
-sse=$(curl -sSN -m 6 "${AGENT[@]}" "$BASE/_firehose" 2>/dev/null | head -c 200 || true)
+sse=$(curl -sSN -m 6 "${RESOLVE[@]}" "${AGENT[@]}" "$BASE/_firehose" 2>/dev/null | head -c 200 || true)
 case "$sse" in
   *'getbus firehose'*) ok "/_firehose streams Server-Sent Events" ;;
   '') bad "/_firehose streams Server-Sent Events" "no bytes received" ;;
