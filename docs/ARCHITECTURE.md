@@ -117,6 +117,7 @@ getbus/
     ttl.test.ts       # DO alarm destroys the topic and de-indexes it
     longpoll.test.ts  # wait: park, wake, time out, clamp
     meta.test.ts      # /_status, /_topics, /_firehose (SSE + poll)
+    ratelimit.test.ts # the per-IP backstop binding is present and live
     helpers.ts
   wrangler.toml
   package.json

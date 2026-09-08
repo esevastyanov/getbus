@@ -126,8 +126,7 @@ npm run deploy     # wrangler deploy (free *.workers.dev to start)
 
 Every limit in [`docs/PROTOCOL.md`](docs/PROTOCOL.md) §7 is an environment variable in
 `wrangler.toml` — message size, TTL, ring-buffer depth, the proof-of-work curve. The
-coarse per-IP rate-limit binding is commented out there; uncomment it on a public
-instance.
+coarse per-IP rate-limit binding is configured there too, beneath proof-of-work.
 
 To watch the proof-of-work path on a local instance, force the toll on:
 

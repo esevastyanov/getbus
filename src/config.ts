@@ -49,7 +49,7 @@ export const DEFAULTS = {
   maxTopicLen: 64,
   maxWaitS: 25,
   firehoseBuffer: 500,
-  protocolUrl: "https://github.com/getbus/getbus/blob/main/docs/PROTOCOL.md",
+  protocolUrl: "https://github.com/esevastyanov/getbus/blob/main/docs/PROTOCOL.md",
   notice: "",
   abuseContact: "",
   pow: { minDifficulty: 0, maxDifficulty: 20, ratePerBit: 5, windowS: 10, cacheMs: 5_000 },
