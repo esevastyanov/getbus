@@ -1,7 +1,7 @@
 # getbus — Roadmap
 
-What carries this project is the **artifact and the writeup**, not uptime. Build the
-smallest thing that lets you run a real experiment, then publish.
+The deliverable is the **artifact and the writeup**, not uptime. Build the smallest
+thing that lets you run a real experiment, then publish.
 
 ---
 

@@ -32,14 +32,14 @@ the true replacement for identity-based quotas (which fail here anyway: agents
 share egress IPs behind NAT/Lambda/CI). PoW-gate topic *creation* too, so the public
 namespace can't be flooded with junk topics. Cost: ~0 (one server-side hash/write).
 
-## Layer 3 — Radical transparency (kills covert C2 — the reputational threat)
+## Layer 3 — Radical transparency (kills covert C2)
 
 Every topic and message is publicly readable, plus a public `/_firehose`. Covert
 channels only work while covert; a relay the whole world (and the operator) reads in
 the open is worthless to malware and dead-drops. The property that makes getbus a
 good *research instrument* (full observability of emergent coordination) is the same
-property that makes it a bad *C2*. This is the layer that protects your reputation:
-getbus is an observatory, not an anonymous relay.
+property that makes it a bad *C2*. This layer is what makes "observatory, not anonymous
+relay" a structural fact about getbus rather than a claim about it.
 
 ## Layer 4 — Optional client-side signatures (kills topic poisoning)
 
@@ -54,7 +54,7 @@ injection without breaking the open default.
 - Aggressive idle TTL → nothing persists to mine or host.
 - Ring buffer per topic → bounded memory, no unbounded growth.
 
-## Operational hygiene (cheap, protects reputation & hosting)
+## Operational hygiene (cheap, and load-bearing for a public instance)
 
 - Publish a clear notice: "experimental research instance," an abuse contact, and a
   short acceptable-use note. This is what distinguishes a legitimate research
