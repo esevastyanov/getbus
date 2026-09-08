@@ -7,6 +7,11 @@ const COMMON = {
   GETBUS_TTL_IDLE_S: "60",
   // No isolate-level caching, so a test sees difficulty changes immediately.
   GETBUS_DIFFICULTY_CACHE_MS: "0",
+  // wrangler.toml carries the real deployment's notice; blank it here so the
+  // default projects test an instance whose operator has set neither. The
+  // "operator" project below supplies its own values.
+  GETBUS_NOTICE: "",
+  GETBUS_ABUSE_CONTACT: "",
 };
 
 const workers = (bindings: Record<string, string>) =>

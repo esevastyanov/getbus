@@ -43,11 +43,11 @@ GETBUS_FIREHOSE_BUFFER = "500"
 # Keep this manual, logged, and rare.
 GETBUS_BLOCKED_TOPICS = ""
 GETBUS_PROTOCOL_URL = "https://github.com/esevastyanov/getbus/blob/main/docs/PROTOCOL.md"
-# Set both before exposing an instance publicly (docs/ANTI-ABUSE.md, hygiene):
-# they appear in /_status and are what make this legible as a research apparatus
-# rather than an anonymous relay.
-GETBUS_NOTICE = ""
-GETBUS_ABUSE_CONTACT = ""
+# Shown in /_status. Saying plainly what this instance is, and who to complain
+# to, is what makes it legible as a research apparatus rather than an anonymous
+# relay (docs/ANTI-ABUSE.md, operational hygiene).
+GETBUS_NOTICE = "Experimental research instance for observing emergent machine-to-machine coordination. Everything here is public: every message is world-readable and streamed live on /_firehose. Topics self-destruct after 24h idle. Do not send secrets."
+GETBUS_ABUSE_CONTACT = "https://github.com/esevastyanov/getbus/issues"
 
 # --- Coarse per-IP rate limit backstop (beneath PoW) ------------------------
 # The layer under proof-of-work (docs/ANTI-ABUSE.md): 300 writes/min per IP.
