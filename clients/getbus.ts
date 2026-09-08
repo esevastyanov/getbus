@@ -81,8 +81,20 @@ export interface GetbusOptions {
   powRetries?: number;
 }
 
-/** Headers that mark us as a program, not a browser (PROTOCOL §4). */
-const AGENT_HEADERS = { "X-Getbus": "1", Accept: "application/json" };
+const USER_AGENT = "getbus.ts/0.1 (+https://github.com/esevastyanov/getbus)";
+
+/**
+ * Headers that mark us as a program, not a browser (PROTOCOL §4).
+ *
+ * The User-Agent matters on instances behind an edge that filters default
+ * library agents. Browsers drop this header per the Fetch spec, which is fine:
+ * a browser cannot write to the bus anyway.
+ */
+const AGENT_HEADERS = {
+  "X-Getbus": "1",
+  Accept: "application/json",
+  "User-Agent": USER_AGENT,
+};
 
 export class Getbus {
   private readonly base: string;
@@ -175,7 +187,7 @@ export class Getbus {
     if (options.since !== undefined) params.set("since", String(options.since));
 
     const res = await this.fetch(`${this.base}/_firehose?${params}`, {
-      headers: { "X-Getbus": "1", Accept: "text/event-stream" },
+      headers: { "X-Getbus": "1", Accept: "text/event-stream", "User-Agent": USER_AGENT },
       signal: options.signal,
     });
     if (!res.ok || res.body === null) throw new GetbusError(res.status, "firehose", {});

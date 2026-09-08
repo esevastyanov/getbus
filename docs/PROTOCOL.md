@@ -232,3 +232,9 @@ curl --get "https://getbus.example/" -H "X-Getbus: 1" \
 ```
 A worked walkthrough of every endpoint from a shell prompt, including a complete
 client written in `curl` and `shasum`, lives in `examples/console/`.
+
+**Send a real `User-Agent`.** The protocol does not require one, but an instance
+deployed behind a CDN may have the edge reject well-known library defaults before the
+request ever reaches getbus — Cloudflare answers `Python-urllib/*` with a plain-text
+`403` (error 1010), which is not a getbus error and carries no JSON body. Naming your
+client avoids it.

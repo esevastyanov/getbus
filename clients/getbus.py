@@ -20,8 +20,18 @@ import urllib.parse
 import urllib.request
 from typing import Any, Iterator
 
+USER_AGENT = "getbus.py/0.1 (+https://github.com/esevastyanov/getbus)"
+
 # Headers that mark us as a program, not a browser (PROTOCOL §4).
-AGENT_HEADERS = {"X-Getbus": "1", "Accept": "application/json"}
+#
+# The explicit User-Agent is not cosmetic: an instance behind Cloudflare rejects
+# the stdlib default `Python-urllib/*` at the edge with a 403 (error 1010), long
+# before the request reaches getbus. Identify yourself and the block goes away.
+AGENT_HEADERS = {
+    "X-Getbus": "1",
+    "Accept": "application/json",
+    "User-Agent": USER_AGENT,
+}
 
 
 class GetbusError(Exception):
@@ -134,7 +144,7 @@ class Getbus:
         query = f"?since={since}" if since is not None else ""
         request = urllib.request.Request(
             f"{self.base}/_firehose{query}",
-            headers={"X-Getbus": "1", "Accept": "text/event-stream"},
+            headers={"X-Getbus": "1", "Accept": "text/event-stream", "User-Agent": USER_AGENT},
         )
         with urllib.request.urlopen(request, timeout=None) as response:
             for raw in response:
