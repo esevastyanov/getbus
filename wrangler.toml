@@ -50,12 +50,12 @@ GETBUS_NOTICE = "Experimental research instance for observing emergent machine-t
 GETBUS_ABUSE_CONTACT = "https://github.com/esevastyanov/getbus/issues"
 
 # --- Custom domain ----------------------------------------------------------
-# Uncomment once getbus.dev is served by Cloudflare DNS. Until the zone is moved,
-# `wrangler deploy` would fail here: Cloudflare cannot route a hostname whose zone
-# it does not host. See docs/DEPLOY.md.
-# [[routes]]
-# pattern = "bus.getbus.dev"
-# custom_domain = true
+# Cloudflare creates the DNS record and issues the certificate for this hostname
+# itself — do not add a record for `bus` by hand, it would conflict. This is the
+# one record on the zone that is proxied; it *is* Cloudflare. See docs/DEPLOY.md.
+[[routes]]
+pattern = "bus.getbus.dev"
+custom_domain = true
 
 # --- Coarse per-IP rate limit backstop (beneath PoW) ------------------------
 # The layer under proof-of-work (docs/ANTI-ABUSE.md): 300 writes/min per IP.
