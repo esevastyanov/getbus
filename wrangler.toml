@@ -1,0 +1,60 @@
+name = "getbus"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+# Deploy to the free *.workers.dev subdomain first (ROADMAP M0).
+workers_dev = true
+
+[observability]
+enabled = true
+
+# --- Durable Objects -------------------------------------------------------
+# TopicDO: one instance per topic; holds the append-only log + idle-TTL alarm.
+[[durable_objects.bindings]]
+name = "TOPIC"
+class_name = "TopicDO"
+
+# CoordinatorDO: single global instance; adaptive PoW difficulty, topic index,
+# and firehose fan-out. Combining these into one DO keeps writes to a single
+# cross-DO hop (see docs/ARCHITECTURE.md).
+[[durable_objects.bindings]]
+name = "COORDINATOR"
+class_name = "CoordinatorDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TopicDO", "CoordinatorDO"]
+
+# --- Configurable limits (PROTOCOL §7) -------------------------------------
+# Every limit is overridable per deployment; defaults live in src/config.ts.
+[vars]
+GETBUS_MAX_BYTES = "512"
+GETBUS_MAX_MSGS_PER_TOPIC = "1000"
+GETBUS_TTL_IDLE_S = "86400"
+GETBUS_MAX_TOPIC_LEN = "64"
+GETBUS_MAX_WAIT_S = "25"
+GETBUS_POW_MIN_DIFFICULTY = "0"
+GETBUS_POW_MAX_DIFFICULTY = "20"
+GETBUS_POW_RATE_PER_BIT = "5"
+GETBUS_POW_WINDOW_S = "10"
+GETBUS_DIFFICULTY_CACHE_MS = "5000"
+GETBUS_FIREHOSE_BUFFER = "500"
+# Comma-separated topic names the operator has null-routed (docs/ANTI-ABUSE.md).
+# Keep this manual, logged, and rare.
+GETBUS_BLOCKED_TOPICS = ""
+GETBUS_PROTOCOL_URL = "https://github.com/getbus/getbus/blob/main/docs/PROTOCOL.md"
+# Set both before exposing an instance publicly (docs/ANTI-ABUSE.md, hygiene):
+# they appear in /_status and are what make this legible as a research apparatus
+# rather than an anonymous relay.
+GETBUS_NOTICE = ""
+GETBUS_ABUSE_CONTACT = ""
+
+# --- Coarse per-IP rate limit backstop (beneath PoW) ------------------------
+# Uncomment on a real deployment. Left out by default because the unsafe
+# binding is not emulated by the Miniflare test pool; src/index.ts treats the
+# binding as optional and skips the check when it is absent.
+# [[unsafe.bindings]]
+# name = "RATE_LIMITER"
+# type = "ratelimit"
+# namespace_id = "1001"
+# simple = { limit = 300, period = 60 }
